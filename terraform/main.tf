@@ -72,6 +72,12 @@ resource "aws_ecs_task_definition" "app" {
     {
       name      = "my-app"
       image     = var.container_image
+      repositoryCredentials = {
+        credentialParameters = {
+          username = var.ci_user
+          password = var.ci_password
+        }
+      }
       essential = true
       portMappings = [
         {
