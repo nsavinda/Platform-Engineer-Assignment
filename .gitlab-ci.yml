@@ -51,5 +51,5 @@ deploy-job:
     - cat ../image_meta.txt
     - source ../image_meta.txt
     - terraform init
-    - terraform plan -out=tfplan -var="container_image=$container_image" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="ci_user=$CI_REGISTRY_USER" -var="ci_password=$CI_REGISTRY_PASSWORD" -var="ci_registry=$CI_REGISTRY"
+    - terraform plan -out=tfplan -var="container_image=$container_image" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="ci_user=$CI_REGISTRY_USER" -var="ci_password=$CI_REGISTRY_PASSWORD"
     - terraform apply -auto-approve tfplan
