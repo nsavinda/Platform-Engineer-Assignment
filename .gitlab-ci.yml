@@ -1,13 +1,40 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/pipeline/#customization
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- test
-sast:
+  - build
+  - test
+  - deploy
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/app"
+
+build-job:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - echo "Building Docker image..."
+    - docker build -t "$IMAGE_NAME:latest" .
+    - docker push "$IMAGE_NAME:latest"
+
+test-job:
   stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - echo "Pulling and testing image..."
+    - docker pull "$IMAGE_NAME:latest"
+    - echo "Run tests here (unit, integration...)"
+
+deploy-job:
+  stage: deploy
+  image: hashicorp/terraform:light
+  script:
+    - echo "Deploying app with Terraform..."
+    - cd terraform
+    - terraform init
+    - terraform apply -auto-approve -var="image_tag=latest"
