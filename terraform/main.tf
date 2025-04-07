@@ -32,6 +32,19 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
+# Secret
+resource "aws_secretsmanager_secret" "gitlab_registry_secret" {
+  name = var.secret_name
+}
+
+resource "aws_secretsmanager_secret_version" "gitlab_registry_secret_version" {
+  secret_id = aws_secretsmanager_secret.gitlab_registry_secret.id
+  secret_string = jsonencode({
+    username = var.ci_user
+    password = var.ci_password
+  })
+}
+
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = var.ecs_cluster_name
@@ -70,13 +83,10 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "my-app"
-      image     = var.container_image
+      name  = "my-app"
+      image = var.container_image
       repositoryCredentials = {
-        credentialParameters = {
-          username = var.ci_user
-          password = var.ci_password
-        }
+        CredentialsParameter = aws_secretsmanager_secret.gitlab_registry_secret.arn
       }
       essential = true
       portMappings = [
@@ -87,6 +97,7 @@ resource "aws_ecs_task_definition" "app" {
       ]
     }
   ])
+  depends_on = [aws_secretsmanager_secret.gitlab_registry_secret]
 }
 
 # ECS Service

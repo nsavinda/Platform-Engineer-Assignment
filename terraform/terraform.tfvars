@@ -4,4 +4,3 @@ ecs_service_name = "my-ecs-service"
 task_family      = "my-task-family"
 container_image  = "nginx:latest"
 desired_count    = 1
-

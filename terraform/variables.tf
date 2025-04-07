@@ -47,10 +47,6 @@ variable "aws_secret_key" {
   sensitive   = true
 }
 
-variable "ci_registry"{
-  description = "CI registry"
-  type        = string  
-}
 variable "ci_user" {
   description = "CI/CD user for GitLab"
   type        = string
@@ -60,4 +56,10 @@ variable "ci_password" {
   description = "CI/CD password for GitLab"
   type        = string
   sensitive   = true
+}
+
+variable "secret_name" {
+  description = "Name for the Secrets Manager secret"
+  type        = string
+  default     = "gitlab-container-credentials"
 }
