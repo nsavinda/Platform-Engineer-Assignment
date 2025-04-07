@@ -33,6 +33,8 @@ test-job:
 deploy-job:
   stage: deploy
   image: hashicorp/terraform:light
+  entrypoint: [""]
+
   script:
     - echo "Deploying app with Terraform..."
     - cd terraform
