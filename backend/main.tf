@@ -1,5 +1,5 @@
 provider "aws" {
-  region = var.aws_region
+  region     = var.aws_region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
@@ -13,7 +13,7 @@ resource "aws_s3_bucket" "terraform_state" {
   }
 
   tags = {
-    Name        = "Terraform State Bucket"
+    Name = "Terraform State Bucket"
     # Environment = var.environment
   }
 }
@@ -37,7 +37,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
   tags = {
-    Name        = "Terraform Lock Table"
+    Name = "Terraform Lock Table"
     # Environment = var.environment
   }
 }

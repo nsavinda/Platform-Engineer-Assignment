@@ -26,8 +26,8 @@ variable "task_memory" {
 }
 
 variable "container_image" {
-  description = "Docker image URL"
-    default     = "nginx:latest"
+  description = "Full image name including tag"
+  type        = string
 }
 
 variable "desired_count" {
@@ -46,3 +46,4 @@ variable "aws_secret_key" {
   type        = string
   sensitive   = true
 }
+
