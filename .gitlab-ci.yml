@@ -1,3 +1,8 @@
+default:
+  variables:
+    TASK_CPU: "2"
+    TASK_MEMORY: "512"
+
 stages:
   - build
   - test
@@ -51,5 +56,5 @@ deploy-job:
     - cat ../image_meta.txt
     - source ../image_meta.txt
     - terraform init
-    - terraform plan -out=tfplan -var="container_image=$container_image" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="ci_user=$CI_REGISTRY_USER" -var="ci_password=$CI_REGISTRY_PASSWORD"
+    - terraform plan -out=tfplan -var="container_image=$container_image" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="ci_user=$CI_REGISTRY_USER" -var="ci_password=$CI_REGISTRY_PASSWORD" -var="task_cpu=$TASK_CPU" -var="task_memory=$TASK_MEMORY" 
     - terraform apply -auto-approve tfplan

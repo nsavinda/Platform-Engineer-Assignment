@@ -28,6 +28,7 @@ variable "task_memory" {
 variable "container_image" {
   description = "Full image name including tag"
   type        = string
+  default     = "nginx:latest"
 }
 
 variable "desired_count" {
