@@ -12,9 +12,6 @@ variables:
 build-job:
   stage: build
   image: docker:latest
-  rules:
-    - changes:
-        - html/**/*     # trigger only if files inside html/ change
   services:
     - docker:dind
   before_script:
@@ -31,9 +28,6 @@ build-job:
 test-job:
   stage: test
   image: docker:latest
-  rules:
-    - changes:
-        - html/**/*     # trigger only if files inside html/ change
   services:
     - docker:dind
   before_script:
