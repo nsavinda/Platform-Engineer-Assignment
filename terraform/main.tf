@@ -45,6 +45,14 @@ resource "aws_secretsmanager_secret_version" "gitlab_registry_secret_version" {
   })
 }
 
+
+# Logs
+resource "aws_cloudwatch_log_group" "ecs_log_group" {
+  name              = "/ecs/my-app"
+  retention_in_days = 7
+}
+
+
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = var.ecs_cluster_name
@@ -69,12 +77,12 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 resource "aws_iam_policy" "ecs_secrets_access" {
   name        = "ecs-task-secrets-access"
   description = "Allows ECS tasks to access container registry secret"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = [
+        Effect = "Allow",
+        Action = [
           "secretsmanager:GetSecretValue"
         ],
         Resource = aws_secretsmanager_secret.gitlab_registry_secret.arn
@@ -95,6 +103,10 @@ resource "aws_iam_role_policy_attachment" "ecs_secrets_access_attachment" {
   policy_arn = aws_iam_policy.ecs_secrets_access.arn
 }
 
+resource "aws_iam_role_policy_attachment" "cloudwatch_logs_access" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
@@ -118,7 +130,15 @@ resource "aws_ecs_task_definition" "app" {
           containerPort = 80
           hostPort      = 80
         }
-      ]
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs_log_group.name
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }
   ])
   depends_on = [aws_secretsmanager_secret.gitlab_registry_secret]
