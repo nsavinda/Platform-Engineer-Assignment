@@ -28,8 +28,6 @@ build-job:
     paths:
       - image_meta.txt
 
-
-
 test-job:
   stage: test
   image: docker:latest
@@ -66,7 +64,8 @@ deploy-job:
       fi
 
     - terraform init
-    - terraform plan -out=tfplan \
+    - |
+      terraform plan -out=tfplan \
         -var="container_image=$container_image" \
         -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" \
         -var="aws_access_key=$AWS_ACCESS_KEY_ID" \
