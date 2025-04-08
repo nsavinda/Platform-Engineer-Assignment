@@ -1,17 +1,13 @@
-default:
-  variables:
-    TASK_CPU: "2"
-    TASK_MEMORY: "512"
-
 stages:
   - build
   - test
   - deploy
 
 variables:
-  IMAGE_NAME: "$CI_REGISTRY_IMAGE/app"
   IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"  # or use $CI_PIPELINE_ID
   IMAGE_NAME: "$CI_REGISTRY_IMAGE/app"
+  TASK_CPU: 256
+  TASK_MEMORY: 512
 
 build-job:
   stage: build
