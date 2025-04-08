@@ -1,3 +1,12 @@
+spec:
+  inputs:
+    task_cpu:
+      type: number
+      default: 256
+    task_memory:
+      type: number
+      default: 512
+
 stages:
   - build
   - test
