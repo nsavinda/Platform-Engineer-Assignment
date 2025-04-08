@@ -4,3 +4,4 @@ secrets.tfvars
 terraform.tfstate.backup
 .terraform
 terraform.tfstate
+.idea

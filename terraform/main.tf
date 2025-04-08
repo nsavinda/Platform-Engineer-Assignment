@@ -32,7 +32,7 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
-# Secret
+# Secret For GitLab Registry
 resource "aws_secretsmanager_secret" "gitlab_registry_secret" {
   name = var.secret_name
 }
@@ -45,20 +45,18 @@ resource "aws_secretsmanager_secret_version" "gitlab_registry_secret_version" {
   })
 }
 
-
-# Logs
+# CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
-  name              = "/ecs/my-app"
+  name              = "/ecs/web-app"
   retention_in_days = 7
 }
-
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = var.ecs_cluster_name
 }
 
-# IAM Role for Task Execution
+# IAM Role
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRole"
 
@@ -74,6 +72,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+# IAM Policy 
 resource "aws_iam_policy" "ecs_secrets_access" {
   name        = "ecs-task-secrets-access"
   description = "Allows ECS tasks to access container registry secret"
@@ -91,18 +90,20 @@ resource "aws_iam_policy" "ecs_secrets_access" {
   })
 }
 
-
 # Attach Policies to Role
+# Policy for ECS Task Execution
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Policy for Secrets Manager Access
 resource "aws_iam_role_policy_attachment" "ecs_secrets_access_attachment" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_secrets_access.arn
 }
 
+# Policy for CloudWatch Logs Access
 resource "aws_iam_role_policy_attachment" "cloudwatch_logs_access" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
@@ -119,7 +120,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name  = "my-app"
+      name  = "web-app"
       image = var.container_image
       repositoryCredentials = {
         CredentialsParameter = aws_secretsmanager_secret.gitlab_registry_secret.arn
@@ -141,10 +142,12 @@ resource "aws_ecs_task_definition" "app" {
       }
     }
   ])
-  depends_on = [aws_secretsmanager_secret.gitlab_registry_secret]
+  depends_on = [aws_secretsmanager_secret.gitlab_registry_secret,
+    aws_cloudwatch_log_group.ecs_log_group
+  ]
 }
 
-# ECS Service
+# ECS Service 
 resource "aws_ecs_service" "app" {
   name            = var.ecs_service_name
   cluster         = aws_ecs_cluster.main.id

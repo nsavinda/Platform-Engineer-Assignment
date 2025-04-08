@@ -4,7 +4,7 @@ stages:
   - deploy
 
 variables:
-  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"  # or use $CI_PIPELINE_ID
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
   IMAGE_NAME: "$CI_REGISTRY_IMAGE/app"
   TASK_CPU: 256
   TASK_MEMORY: 512
@@ -12,6 +12,9 @@ variables:
 build-job:
   stage: build
   image: docker:latest
+  rules:
+    - changes:
+        - html/**/*     # trigger only if files inside html/ change
   services:
     - docker:dind
   before_script:
@@ -21,15 +24,18 @@ build-job:
     - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
     - docker push "$IMAGE_NAME:$IMAGE_TAG"
     - echo "container_image=$IMAGE_NAME:$IMAGE_TAG" > image_meta.txt
-
   artifacts:
     paths:
       - image_meta.txt
 
 
+
 test-job:
   stage: test
   image: docker:latest
+  rules:
+    - changes:
+        - html/**/*     # trigger only if files inside html/ change
   services:
     - docker:dind
   before_script:
@@ -49,8 +55,23 @@ deploy-job:
     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
     - echo "Deploying app with Terraform..."
     - cd terraform
-    - cat ../image_meta.txt
-    - source ../image_meta.txt
+
+    # Get container image from build artifact or fallback to default
+    - |
+      if [ -f ../image_meta.txt ]; then
+        source ../image_meta.txt
+      else
+        container_image="$IMAGE_NAME:latest"
+        echo "Build job skipped. Using latest image: $container_image"
+      fi
+
     - terraform init
-    - terraform plan -out=tfplan -var="container_image=$container_image" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="ci_user=$CI_REGISTRY_USER" -var="ci_password=$CI_REGISTRY_PASSWORD" -var="task_cpu=$TASK_CPU" -var="task_memory=$TASK_MEMORY" 
+    - terraform plan -out=tfplan \
+        -var="container_image=$container_image" \
+        -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY" \
+        -var="aws_access_key=$AWS_ACCESS_KEY_ID" \
+        -var="ci_user=$CI_REGISTRY_USER" \
+        -var="ci_password=$CI_REGISTRY_PASSWORD" \
+        -var="task_cpu=$TASK_CPU" \
+        -var="task_memory=$TASK_MEMORY"
     - terraform apply -auto-approve tfplan

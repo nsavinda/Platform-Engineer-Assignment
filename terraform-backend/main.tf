@@ -4,7 +4,7 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-# S3 Bucket for Terraform state (without encryption)
+# S3 Bucket for Terraform state
 resource "aws_s3_bucket" "terraform_state" {
   bucket = var.bucket_name
 
@@ -14,10 +14,10 @@ resource "aws_s3_bucket" "terraform_state" {
 
   tags = {
     Name = "Terraform State Bucket"
-    # Environment = var.environment
   }
 }
 
+# AWS S3 Bucket Versioning
 resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
   bucket = aws_s3_bucket.terraform_state.id
   versioning_configuration {
