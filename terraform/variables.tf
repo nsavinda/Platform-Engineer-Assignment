@@ -62,5 +62,5 @@ variable "ci_password" {
 variable "secret_name" {
   description = "Name for the Secrets Manager secret"
   type        = string
-  default     = "gitlab-container-credentials-3"
+  default     = "gitlab-container-credentials-5"
 }
