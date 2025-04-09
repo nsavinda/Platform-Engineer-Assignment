@@ -6,10 +6,10 @@ stages:
 variables:
   IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
   IMAGE_NAME: "$CI_REGISTRY_IMAGE/app"
-  TASK_CPU: 256
+  TASK_CPU: 256 
   TASK_MEMORY: 512
 
-build-job:
+build:
   stage: build
   image: docker:latest
   services:
@@ -19,25 +19,13 @@ build-job:
   script:
     - echo "Building Docker image..."
     - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
-    - docker push "$IMAGE_NAME:$IMAGE_TAG"
-    - echo "container_image=$IMAGE_NAME:$IMAGE_TAG" > image_meta.txt
+    - docker push "$IMAGE_NAME:$IMAGE_TAG" # Push the image to the registry
+    - echo "container_image=$IMAGE_NAME:$IMAGE_TAG" > image_meta.txt # Save image metadata
   artifacts:
     paths:
       - image_meta.txt
 
-test-job:
-  stage: test
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-  script:
-    - echo "Pulling and testing image..."
-    - docker pull "$IMAGE_NAME:latest"
-    - echo "Run tests here (unit, integration...)"
-
-deploy-job:
+deploy:
   stage: deploy
   image:
     name: hashicorp/terraform:latest
@@ -47,16 +35,7 @@ deploy-job:
     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
     - echo "Deploying app with Terraform..."
     - cd terraform
-
-    # Get container image from build artifact or fallback to default
-    - |
-      if [ -f ../image_meta.txt ]; then
-        source ../image_meta.txt
-      else
-        container_image="$IMAGE_NAME:latest"
-        echo "Build job skipped. Using latest image: $container_image"
-      fi
-
+    - source ../image_meta.txt # Load image metadata
     - terraform init
     - |
       terraform plan -out=tfplan \
