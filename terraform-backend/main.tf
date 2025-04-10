@@ -15,6 +15,7 @@ resource "aws_s3_bucket" "terraform_state" {
   tags = {
     Name = "Terraform State Bucket"
   }
+  # force_destroy = true
 }
 
 # AWS S3 Bucket Versioning
