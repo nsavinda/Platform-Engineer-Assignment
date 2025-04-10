@@ -60,4 +60,3 @@ DevSecOps is an enhancement for DevOps that ensures security in the whole proces
 
 In DevSecOps, security is considered from the beginning and throughout the whole development process, unlike the traditional approach, which is costly and time consuming.
 In DevSecOps, it is encouraged to automate security processes, such as vulnerability scanning, before deployment. Also, it helps to comply with legal requirements like HIPAA and GDPR.
-
